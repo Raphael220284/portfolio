@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Solaris - Raphael Lariccia</title>
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Custom Google font-->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100;200;300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet" />
+        <!-- Bootstrap icons-->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+    <body class="d-flex flex-column h-100 bg-light">
+        <main class="flex-shrink-0">
+            <!-- Navigation-->
+            <nav class="navbar navbar-expand-lg navbar-light bg-white py-3">
+                <div class="container px-5">
+                    <a class="navbar-brand" href="projects.html"><span class="fw-bolder text-primary">Back</span></a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 small fw-bolder">
+                            <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                            <li class="nav-item"><a class="nav-link" href="resume.html">Resume</a></li>
+                            <li class="nav-item"><a class="nav-link" href="projects.html">Projects</a></li>
+                            <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <!-- Projects Section-->
+            <section class="py-5">
+                <div class="container px-5 mb-5">
+                    <div class="text-center mb-5">
+                        <h1 class="display-5 fw-bolder mb-0"><span class="text-gradient d-inline">Projects</span></h1>
+                    </div>
+                    <div class="row gx-5 justify-content-center">
+                        <div class="col-lg-11 col-xl-9 col-xxl-8">
+                            <!-- Project Card 1-->
+                            <div class="card overflow-hidden shadow rounded-4 border-0 mb-5">
+                                <div class="card-body p-0">
+                                    <div class="p-5">
+                                        <h1 class="fw-bolder">Learn more about Solaris</h1>
+                                        <p>
+                                            <h2>
+                                                Third person controller
+                                            </h2>
+                                        </p>
+                                        <p>
+                                            <h5>
+                                                Since this game is a Twinstick shooter,
+                                                I needed to make a third person controller I did this by using a Raycast on a layer and have the player look at that point.
+                                                and the player can move around with WASD
+                                            </h5>
+                                        </p>
+                                        <div class="card overflow-hidden shadow rounded-4 border-0 mb-5">
+                                            <div class="card-body p-0">
+                                                <div class="p-5">
+                                                    <code>
+                                                        <pre>
+private void FixedUpdate()
+{
+    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+    if (Physics.Raycast(ray, out _hit, 1000, layerMask))
+    {
+        Vector3 mouseposition = new Vector3(_hit.point.x, transform.position.y, _hit.point.z);
+        transform.LookAt(mouseposition);
+    }
+}
+                                                            </pre>
+                                                    </code>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p>
+                                            <h2>
+                                                Shooting
+                                            </h2>
+                                        </p>
+                                        <p>
+                                            <h5>
+                                                Shooting makes use of the Third person controller to aim and you shoot a bullet at an enemy by pressing a button,
+                                                I made a reload function as well which I’m pretty proud of.
+                                                I made it so it looks at if the magazine is empty or full or half full and fills it with bullets depending on that.
+                                            </h5>
+                                        </p>
+                                        <div class="card overflow-hidden shadow rounded-4 border-0 mb-5">
+                                            <div class="card-body p-0">
+                                                <div class="p-5">
+                                                    <code>
+                                                        <pre>
+if (Input.GetKeyDown(KeyCode.R))
+{
+    _reloading = true;
+}
+if (_reloading)
+{
+    if (_magSize - _Magazine.Count > _ReserveBullets.Count)
+    {
+        Reload(_ReserveBullets.Count);
+    }
+    else if (_magSize - _Magazine.Count <= _ReserveBullets.Count)
+    {
+        float f = _magSize - _Magazine.Count;
+
+        Reload(f);
+    }
+}
+if (_Magazine.Count <= 0)
+{
+    //checking if theres between 1 and 11 bullets in the totalbullets list
+    if (_ReserveBullets.Count >= 1 && _ReserveBullets.Count <= _magSize)
+    {
+        Reload(_ReserveBullets.Count);
+    }
+    else if (_ReserveBullets.Count <= 0)
+    {
+        Debug.Log("No ammo");
+    }
+    else if (_ReserveBullets.Count >= _magSize)
+    {
+        Reload(_magSize);
+    }
+}
+                                                            </pre>
+                                                    </code>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p>
+                                            <h2>
+                                                PowerUps
+                                            </h2>
+                                        </p>
+                                        <p>
+                                            <h5>
+                                                I created items that you can collect from killing enemies and these give you temporary powerups.
+                                                Examples are fire damage, stunning the enemy,
+                                                reducing the enemies defense.
+                                            </h5>
+                                        </p>
+                                        <div class="card overflow-hidden shadow rounded-4 border-0 mb-5">
+                                            <div class="card-body p-0">
+                                                <div class="p-5">
+                                                    <code>
+                                                        <pre>
+if (OnFire)
+{
+    _fireTime -= Time.deltaTime;
+    _damageTick -= Time.deltaTime;
+    if (_damageTick <= 0f)
+    {
+        _damageTick = 0.5f;
+        _health.HealthPoints -= 1;
+    }
+    if (_fireTime <= 0)
+    {
+        _fireTime = 10;
+        _damageTick = 0.5f;
+        OnFire = false;
+    }
+    if (OnWater)
+    {
+        _health.HealthPoints -= 10;
+        _fireTime = 10;
+        _damageTick = 0.5f;
+        OnFire = false;
+        OnWater = false;
+    }
+    if (OnWind)
+    {
+        _fireTime = 10;
+        _damageTick = 0.5f;
+        OnFire = false;
+    }
+if (OnWater)
+{
+    _waterTime -= Time.deltaTime;
+    if (_waterTime <= 0)
+    {
+        _waterTime = 10;
+        OnWater = false;
+    }
+}
+if (OnWind)
+{
+    float speed = 0.5f;
+    if (_playonce)
+    {
+        speed = _navmesh.speed;
+        _navmesh.speed = _navmesh.speed / 2;
+        _playonce = false;
+    }
+    _windTime -= Time.deltaTime;
+    _enemybrain.enabled = false;
+    if (_windTime <= 0)
+    {
+        OnWind = false;
+        _enemybrain.enabled = true;
+        _navmesh.speed = speed;
+        _playonce = true;
+        _windTime = 10;
+    }
+}
+if (OnElectro)
+{
+    float speed = 0.5f;
+    if (_playonce)
+    {
+        speed = _navmesh.speed;
+        _navmesh.speed = 0;
+        _playonce = false;
+    }
+    _electroTime -= Time.deltaTime;
+    _damageTick -= Time.deltaTime;
+    _navmesh.speed = 0;
+    if (OnWater)
+    {
+        if (_damageTick <= 0)
+        {
+            _damageTick = 1;
+            _health.HealthPoints -= 2;
+        }
+    }
+    if (_electroTime <= 0)
+    {
+        _navmesh.speed = speed;
+        OnElectro = false;
+        _electroTime = 10;
+        _playonce = true;
+    }
+}
+
+                                                            </pre>
+                                                    </code>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Call to action section-->
+            <section class="py-5 bg-gradient-primary-to-secondary text-white">
+                <div class="container px-5 my-5">
+                    <div class="text-center">
+                        <h2 class="display-4 fw-bolder mb-4">Let's build something together</h2>
+                        <a class="btn btn-outline-light btn-lg px-5 py-3 fs-6 fw-bolder" href="contact.html">Contact me</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <!-- Footer-->
+        <footer class="bg-white py-4 mt-auto">
+            <div class="container px-5">
+                <div class="row align-items-center justify-content-between flex-column flex-sm-row">
+                    <div class="col-auto"><div class="small m-0">Copyright &copy; Raphael Lariccia 2023</div></div>
+                    <div class="col-auto">
+                        <a class="small" href="#!">Privacy</a>
+                        <span class="mx-1">&middot;</span>
+                        <a class="small" href="#!">Terms</a>
+                        <span class="mx-1">&middot;</span>
+                        <a class="small" href="#!">Contact</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+    </body>
+</html>
