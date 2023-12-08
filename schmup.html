@@ -49,16 +49,14 @@
                                         <h1 class="fw-bolder">Learn more about Schmup</h1>
                                         <p>
                                             <h2>
-                                                Hand Brake
+                                                Void shark
                                             </h2>
                                         </p>
                                         <p>
                                             <h5>
-                                                In a racing game you of course need a hand brake,
-                                                next to being able to brake by just pressing space.
-                                                I thought it would be fun to check for if the player is moving forwards and have them also handbrake by pressing s and then being able to normally drive backwards after they stand still.
-                                                I did this by getting the forward velocity from the Rigidbody and turning on a Boolean,
-                                                if you’re going forward then implementing that into the if statement if you’re going forwards and pressing S you will go backwards (variable _forward is Input Axis).
+                                                This is a shark enemy that shoots laser beams,
+                                                this is one of the three enemies that you will encounter in this game and it is my proudest one.
+                                                it will first place a red beam in the place of it’s laser to indicate that it’s going to shoot
                                             </h5>
                                         </p>
                                         <div class="card overflow-hidden shadow rounded-4 border-0 mb-5">
@@ -66,110 +64,204 @@
                                                 <div class="p-5">
                                                     <code>
                                                         <pre>
-private void FixedUpdate()
+private void OnTriggerEnter(Collider other)
 {
-    var velocity = Rb.velocity;
-    var localVel = Rb.transform.InverseTransformDirection(velocity);
-    Debug.Log(localVel);
-    if (localVel.z > 0.1)
+    if (other.gameObject.CompareTag("Player"))
     {
-        Forward = true;
+        lookingAtPlayer = true;
     }
-    else
+}
+private void Update()
+{
+    if ( lookingAtPlayer)
     {
-        Forward = false;
-    }
-    foreach (Wheel _wheel in Wheels)
-    {
-        _wheel.Accelerate(_forward * Power);
-        _wheel.Turn(_angle * MaxAngle);
-        if (Forward && _forward <= -0.1)
-        if (Forward && _forward <= -0.1 || Input.GetKey(KeyCode.Space))
+        if (!stopRotating)
         {
-            _wheel.Brake(Power);
+            //naar de player kijken
+            transform.LookAt(player);
+            //goede rotatie pakken om naar de player te kijken
+            transform.rotation *= Quaternion.AngleAxis(-90, Vector3.up);
+        }
+        if (!isAttacking)
+        {
+            //start attack
+            StartCoroutine(AttackSequence());
+        }
+    }
+}
+
+public void OnDestroy()
+{
+    if (readyLaser != null)
+    {
+        Destroy(readyLaser);
+    }
+}
+
+private IEnumerator AttackSequence()
+{
+    isAttacking = true;
+    GetComponent<VoidSharkBehaviour>().movementPaused = true;
+    yield return new WaitForSeconds(1f);
+    stopRotating = true;
+    //instantiate de warning laser
+    readyLaser = Instantiate(readyLaserPrefab, transform.position, transform.rotation);
+    //zet de laser op de juiste axis
+    readyLaser.transform.Translate(Vector3.right * 2f);
+    readyLaser.transform.Rotate(Vector3.up * 180f);
+    //koekeloeren wat het materiaal is van de laser
+    Material material = readyLaser.GetComponentInChildren<Renderer>().material;
+    Color color = material.color;
+    float readyLaserTimer = 0f;
+    while (true)
+    {
+        readyLaserTimer += Time.deltaTime;
+        //maakt de warning laser doorzichtig
+        color.a = Mathf.Lerp(readyLaserStartingAlpha, readyLaserEndingAlpha, readyLaserTimer / readyLaserDuration);
+        material.color = color;
+        if (readyLaserTimer >= readyLaserDuration)
+        {
+            break;
+        }
+        yield return null;
+    }
+        
+    damageLaser = Instantiate(damageLaserPrefab, readyLaser.transform.position, readyLaser.transform.rotation).GetComponent<DamageLaser>();
+    //verwijderd de warning laser
+    Destroy(readyLaser);
+    float damageLaserTimer = 0f;
+    while (damageLaserTimer < damageLaserDurationBeforeHit)
+    {
+        damageLaserTimer += Time.deltaTime;
+        //stopt de timer
+        if (damageLaser.hasDamagedPlayer)
+        {
+            break;
+        }
+        yield return null;
+    }
+    if (damageLaser.hasDamagedPlayer)
+    {
+        //verwijderd de voidsharklaser
+        Destroy(damageLaser.gameObject, damageLaserDurationAfterHit);
+        yield return new WaitForSeconds(damageLaserDurationAfterHit);
+    }
+    //reset de variabelen
+    stopRotating = false;
+    yield return new WaitForSeconds(attackCooldown);
+    isAttacking = false;
+}
+                                                            </pre>
+                                                    </code>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p>
+                                            <h2>
+                                                Enemy wave spawner
+                                            </h2>
+                                        </p>
+                                        <p>
+                                            <h5>
+                                                My enemy wave spawner spawns a random wave of enemies out of prefabbed waves I have made before in a list.
+                                            </h5>
+                                        </p>
+                                        <div class="card overflow-hidden shadow rounded-4 border-0 mb-5">
+                                            <div class="card-body p-0">
+                                                <div class="p-5">
+                                                    <code>
+                                                        <pre>
+private void Awake()
+{
+    random = Random.Range(0, randomRange);
+    Create();
+}
+    
+private void Create()
+{
+    enemies = new List<RandomEnemiesSpawning>();
+
+    float startX = enemyZone.x;
+    float startY = enemyZone.yMax;
+
+    for (int i = 0; i < enemyTypeOnRowPerLevel[random].enemies.Length; i++)
+    {
+        for (int j = 0; j < amountPerRowPerLevel[random]; j++)
+        {
+            if (enemyTypeOnRowPerLevel[random].enemies[i] != null)
+            {
+                GameObject enemy = Instantiate(enemyTypeOnRowPerLevel[random].enemies[i], new Vector3(startX + j * paddingX, startY - i * paddingY, 0), Quaternion.identity);
+                enemies.Add(enemy.GetComponent<RandomEnemiesSpawning>());
+            }
+        }
+    }
+}
+private void OnDrawGizmos()
+{
+    Gizmos.DrawWireCube(enemyZone.center, enemyZone.size);
+}
+
+[System.Serializable]
+public class EnemiesPerLevel
+{
+    public GameObject[] enemies;
+}
+                                                            </pre>
+                                                    </code>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p>
+                                            <h2>
+                                                Object pooler + shooting
+                                            </h2>
+                                        </p>
+                                        <p>
+                                            <h5>
+                                                In dit script heb ik een shoot mechanic gemaakt en gebruik ik object pooling om de bullets die je schiet te despawnen en niet te verwijderen dan later weer terug te spawnen.
+                                            </h5>
+                                        </p>
+                                        <div class="card overflow-hidden shadow rounded-4 border-0 mb-5">
+                                            <div class="card-body p-0">
+                                                <div class="p-5">
+                                                    <code>
+                                                        <pre>
+private void Update()
+{
+    //Bullet elke 10e seconden schieten met spatie
+    bulletCooldown += Time.deltaTime;
+    if (Input.GetKeyDown(KeyCode.Space))
+    {
+        if (bulletCooldown > 0.1)
+        {
+            bulletCooldown = 0;
+            Fire();
         }
         else
         {
-            _wheel.Brake(0);
+            Debug.LogError("Didn't fire");
         }
     }
 }
-                                                            </pre>
-                                                    </code>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p>
-                                            <h2>
-                                                Laps & Checkpoints
-                                            </h2>
-                                        </p>
-                                        <p>
-                                            <h5>
-                                                Voor een race spel heb je wel Laps en Checkpoints nodig,
-                                                voor de checkpoint en lap heb ik een collider en een list,
-                                                in deze list zitting meerdere posities van alle checkpoints en als je door een checkpoint heen gaat dan word de positie van de checkpoint hitbox verplaatst naar de volgende positie zodat er geen problemen kunnen zijn met de checkpoints.
-                                            </h5>
-                                            <h2>
-                                                Checkpoint
-                                            </h2>
-                                        </p>
-                                        <div class="card overflow-hidden shadow rounded-4 border-0 mb-5">
-                                            <div class="card-body p-0">
-                                                <div class="p-5">
-                                                    <code>
-                                                        <pre>
-private void OnTriggerExit(Collider other)
+void Fire ()
 {
-    if (other.CompareTag("Player"))
+    //kogel uit de list halen en schieten
+    GameObject obj = ObjectPoolerScript.current.GetPooledObject();
+
+    if (obj == null) return;
+    if (!shootEveryOther)
     {
-        _car.Spawnpoint.transform.position = _CheckpointLocations[_checkPoint].position;
-        _car.Spawnpoint.transform.rotation = _CheckpointLocations[_checkPoint].rotation;
-        _checkPoint += 1;
-        _allCheckpoints += 1;
-        if (_checkPoint >= _CheckpointLocations.Count)
-        {
-            _checkPoint = 0;
-        }
-        transform.position = _CheckpointLocations[_checkPoint].position;
-        transform.rotation = _CheckpointLocations[_checkPoint].rotation;
+        obj.transform.position = new Vector3(firePoint1.transform.position.x, firePoint1.transform.position.y, firePoint1.transform.position.z);
+        obj.transform.rotation = firePoint1.transform.rotation;
+        obj.SetActive(true);
+        shootEveryOther= true;
     }
-}
-                                                            </pre>
-                                                    </code>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p>
-                                            <h2>
-                                                Lap
-                                            </h2>
-                                        </p>
-                                        <p>
-                                            <h5>
-                                                In de Laps heb ik hetzelfde als in de checkpoints maar je moet alle 3 de checkpoints hebben aangeraakt anders kan je niet naar de volgende lap.
-                                                En dan zet ik de laptime in een list zodat je kan zien wat je snelste tijden waren en tel ik de lap op met 1.
-                                            </h5>
-                                        </p>
-                                        <div class="card overflow-hidden shadow rounded-4 border-0 mb-5">
-                                            <div class="card-body p-0">
-                                                <div class="p-5">
-                                                    <code>
-                                                        <pre>
-private void OnTriggerExit(Collider other)
-{
-    if (other.CompareTag("Player"))
+    else if (shootEveryOther)
     {
-        if (_checkPoint._checkPoint == 3 * _lap)
-        {
-            UiLapAppear = true;
-            _lapTime.Add(_timer);
-            _timer = 0;
-            transform.position = _StartLapLocations[_lap].position;
-            transform.rotation = _StartLapLocations[_lap].rotation;
-            _lap += 1;
-            _startTime = true;
-        }
+        obj.transform.position = new Vector3(firePoint2.transform.position.x, firePoint2.transform.position.y, firePoint2.transform.position.z);
+        obj.transform.rotation = firePoint2.transform.rotation;
+        obj.SetActive(true);
+        shootEveryOther= false;
     }
 }
                                                             </pre>
